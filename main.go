@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -97,8 +99,16 @@ func (li *LinesInfo) fetchLinesInfo() {
 	}()
 }
 
+type Lines struct {
+	Soccer string `json:"SOCCER"`
+}
+
+type Response struct {
+	Lines Lines `json:"lines"`
+}
+
 func main() {
-	c := make(chan Line)
+	/*c := make(chan Line)
 	go fetchLine(c)
 
 	linesInfo := NewLinesInfo()
@@ -107,5 +117,35 @@ func main() {
 	for {
 		time.Sleep(1 * time.Second)
 		fmt.Println(linesInfo)
+	}*/
+
+	// URL of the JSON endpoint
+	url := "http://localhost:8000/api/v1/lines/soccer"
+
+	// Make the HTTP GET request
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatalf("Failed to make the request: %v", err)
 	}
+	defer resp.Body.Close()
+
+	// Check if the response status code is OK
+	if resp.StatusCode != http.StatusOK {
+		log.Fatalf("Received non-OK HTTP status: %s", resp.Status)
+	}
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalf("Failed to read the response body: %v", err)
+	}
+
+	// Unmarshal the JSON response into the struct
+	var response Response
+	if err := json.Unmarshal(body, &response); err != nil {
+		log.Fatalf("Failed to unmarshal JSON: %v", err)
+	}
+
+	// Print the result
+	fmt.Printf("Soccer: %s\n", response.Lines.Soccer)
 }
