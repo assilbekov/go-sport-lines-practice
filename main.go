@@ -26,12 +26,70 @@ type LinesResponse struct {
 	Lines LineResponse `json:"lines"`
 }
 
+func fetchSportLine(sport string) (*Line, error) {
+	resp, err := http.Get(baseURL + sport)
+	if err != nil {
+		return &Line{}, fmt.Errorf("failed to fetch sport line: %w", err)
+	}
+
+	// 1. Why do we need to close the response body?
+	// 2. How to handle the error if the response body fails to close?
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			// Log the error instead of overriding the main error
+			fmt.Printf("error closing response body: %v\n", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var result LineResponse
+	if err = json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+
+	switch sport {
+	case "soccer":
+		soccer, err := strconv.ParseFloat(result.Soccer, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse soccer line: %w", err)
+		}
+		return &Line{Soccer: soccer}, nil
+	case "football":
+		football, err := strconv.ParseFloat(result.Football, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse football line: %w", err)
+		}
+		return &Line{Football: football}, nil
+	case "baseball":
+		baseball, err := strconv.ParseFloat(result.Baseball, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse baseball line: %w", err)
+		}
+		return &Line{Baseball: baseball}, nil
+	}
+
+	return nil, fmt.Errorf("unknown sport: %s", sport)
+}
+
 func main() {
 	resp, err := http.Get(baseURL + "soccer")
 	if err != nil {
 		panic(err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		panic("unexpected status code")
