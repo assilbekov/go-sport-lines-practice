@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 const baseURL = "http://localhost:8000/api/v1/lines/"
@@ -82,24 +84,90 @@ func processSportLine(sport string, response *LinesResponse) (*Line, error) {
 	}
 }
 
+func startWorker(sport string, interval time.Duration, storage *Line, quit <-chan struct{}) {
+	ticker := time.NewTicker(interval)
+	// 1. Why do we need to stop the ticker?
+	// 2. What happens if we don't stop the ticker?
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			response, err := fetchSportLine(sport)
+			if err != nil {
+				fmt.Printf("failed to fetch sport line: %v\n", err)
+				continue
+			}
+
+			line, err := processSportLine(sport, response)
+			if err != nil {
+				fmt.Printf("failed to process sport line: %v\n", err)
+				continue
+			}
+
+			switch sport {
+			case "soccer":
+				storage.Soccer = line.Soccer
+			case "football":
+				storage.Football = line.Football
+			case "baseball":
+				storage.Baseball = line.Baseball
+			default:
+				fmt.Printf("unknown sport: %s\n", sport)
+			}
+		case <-quit:
+			slog.Info("worker stopped", "sport", sport)
+			return
+		}
+	}
+}
+
+type SportsConfig struct {
+	name     string
+	interval time.Duration
+
+	quitCh chan struct{}
+}
+
 func main() {
-	sports := []string{"soccer", "football", "baseball"}
+	sports := []SportsConfig{{
+		name:     "soccer",
+		interval: time.Second * 4,
+		quitCh:   make(chan struct{}),
+	}, {
+		name:     "football",
+		interval: time.Second * 3,
+		quitCh:   make(chan struct{}),
+	}, {
+		name:     "baseball",
+		interval: time.Second * 7,
+		quitCh:   make(chan struct{}),
+	}}
 
-	for _, sport := range sports {
-		response, err := fetchSportLine(sport)
-		if err != nil {
-			fmt.Printf("failed to fetch sport line: %v\n", err)
-			continue
+	storage := &Line{}
+
+	for _, s := range sports {
+		go startWorker(s.name, s.interval, storage, s.quitCh)
+	}
+
+	for i := 0; i < 30; i++ {
+		time.Sleep(time.Second)
+
+		if i == 16 {
+			sports[0].quitCh <- struct{}{}
+			close(sports[0].quitCh)
 		}
 
-		fmt.Printf("response: %+v\n", response)
-
-		line, err := processSportLine(sport, response)
-		if err != nil {
-			fmt.Printf("failed to process sport line: %v\n", err)
-			continue
+		if i == 20 {
+			sports[1].quitCh <- struct{}{}
+			close(sports[1].quitCh)
 		}
 
-		fmt.Printf("sport: %s, line: %+v\n", sport, line)
+		if i == 25 {
+			sports[2].quitCh <- struct{}{}
+			close(sports[2].quitCh)
+		}
+
+		fmt.Printf("storage: %+v\n", storage)
 	}
 }
