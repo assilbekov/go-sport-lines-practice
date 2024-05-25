@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"go-sport-lines-practice/configs"
 	"io"
 	"log/slog"
 	"net/http"
@@ -130,6 +131,9 @@ type SportsConfig struct {
 }
 
 func main() {
+	cfg := configs.LoadConfig()
+	fmt.Printf("config: %+v\n", cfg)
+
 	sports := []SportsConfig{{
 		name:     "soccer",
 		interval: time.Second * 4,

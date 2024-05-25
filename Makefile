@@ -1,2 +1,2 @@
 run:
-	go run ./cmd/sports-line-processor/main.go
+	ENV=dev go run ./cmd/sports-line-processor/main.go
