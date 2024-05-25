@@ -1,2 +1,2 @@
 run:
-	go run main.go
+	go run ./cmd/sports-line-processor/main.go
