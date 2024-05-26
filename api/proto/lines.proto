@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package lines;
 
-option go_package = "github.com/assilbekov/go-sport-lines-practice/pkg/lines";
+option go_package = "api/proto/pkg/lines";
 
 service LinesService {
   rpc SubscribeOnSportLines (stream SportLinesRequest) returns (stream SportLinesResponse) {}
