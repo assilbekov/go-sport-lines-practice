@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package lines;
+
+option go_package = "github.com/assilbekov/go-sport-lines-practice/pkg/lines";
+
+service LinesService {
+  rpc SubscribeOnSportLines (stream SportLinesRequest) returns (stream SportLinesResponse) {}
+}
+
+message SportLinesRequest {
+  repeated string sports = 1;
+  int32 interval = 2; // interval in seconds
+}
+
+message SportLinesResponse {
+  map<string, float> lines = 1;
+}
