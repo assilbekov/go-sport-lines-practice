@@ -5,6 +5,8 @@ import (
 	"go-sport-lines-practice/configs"
 	"go-sport-lines-practice/internal/storage"
 	"go-sport-lines-practice/internal/worker"
+	"log/slog"
+	"os"
 )
 
 func main() {
@@ -21,4 +23,8 @@ func main() {
 	select {
 	// wait forever
 	}
+}
+
+func setupLogger(logLevel string) *slog.Logger {
+	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 }

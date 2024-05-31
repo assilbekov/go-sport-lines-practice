@@ -19,13 +19,14 @@ func StartWorker(
 	for {
 		select {
 		case <-ticker.C:
-			line, err := fetcher.FetchSportLines(sport)
-			if err != nil {
-				fmt.Printf("failed to fetch sport line: %v\n", err)
-				continue
-			}
+			go func() {
+				line, err := fetcher.FetchSportLines(sport)
+				if err != nil {
+					fmt.Printf("failed to fetch sport line: %v\n", err)
+				}
 
-			storage.UpdateLines(*line)
+				storage.UpdateLines(*line)
+			}()
 		case <-quitCh:
 			return
 		}
