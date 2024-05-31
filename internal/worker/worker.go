@@ -13,6 +13,7 @@ func StartWorker(
 	storage *storage.Storage,
 	quitCh chan struct{},
 ) {
+	f := fetcher.NewFetcher("http://localhost:8080/lines/")
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -20,7 +21,7 @@ func StartWorker(
 		select {
 		case <-ticker.C:
 			go func() {
-				line, err := fetcher.FetchSportLines(sport)
+				line, err := f.FetchSportLines(sport)
 				if err != nil {
 					fmt.Printf("failed to fetch sport line: %v\n", err)
 				}

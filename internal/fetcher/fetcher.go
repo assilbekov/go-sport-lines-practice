@@ -9,7 +9,9 @@ import (
 	"strconv"
 )
 
-const baseURL = "http://localhost:8000/api/v1/lines/"
+type Fetcher struct {
+	BaseURL string
+}
 
 type LineResponse struct {
 	Soccer   string `json:"SOCCER"`
@@ -21,8 +23,14 @@ type LinesResponse struct {
 	Lines LineResponse `json:"lines"`
 }
 
-func fetchAndParseSportLines(sport string) (*LinesResponse, error) {
-	resp, err := http.Get(baseURL + sport)
+func NewFetcher(baseURL string) *Fetcher {
+	return &Fetcher{
+		BaseURL: baseURL,
+	}
+}
+
+func (f *Fetcher) fetchAndParseSportLines(sport string) (*LinesResponse, error) {
+	resp, err := http.Get(f.BaseURL + sport)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch sport line: %w", err)
 	}
@@ -49,7 +57,7 @@ func fetchAndParseSportLines(sport string) (*LinesResponse, error) {
 	return &result, nil
 }
 
-func convertLinesResponseToLine(response *LinesResponse) (*storage.Line, error) {
+func (f *Fetcher) convertLinesResponseToLine(response *LinesResponse) (*storage.Line, error) {
 	var line storage.Line
 	var err error
 
@@ -71,13 +79,13 @@ func convertLinesResponseToLine(response *LinesResponse) (*storage.Line, error) 
 	return &line, nil
 }
 
-func FetchSportLines(sport string) (*storage.Line, error) {
-	resp, err := fetchAndParseSportLines(sport)
+func (f *Fetcher) FetchSportLines(sport string) (*storage.Line, error) {
+	resp, err := f.fetchAndParseSportLines(sport)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch and parse sport lines: %w", err)
 	}
 
-	line, err := convertLinesResponseToLine(resp)
+	line, err := f.convertLinesResponseToLine(resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert lines response to line: %w", err)
 	}
