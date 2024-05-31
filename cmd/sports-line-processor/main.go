@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"go-sport-lines-practice/configs"
+	"go-sport-lines-practice/internal/configs"
 	"go-sport-lines-practice/internal/storage"
 	"go-sport-lines-practice/internal/worker"
 	"log/slog"
