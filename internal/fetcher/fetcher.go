@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"go-sport-lines-practice/internal/storage"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
 )
 
 type Fetcher struct {
 	BaseURL string
+	logger  *slog.Logger
 }
 
 type LineResponse struct {
@@ -23,9 +25,10 @@ type LinesResponse struct {
 	Lines LineResponse `json:"lines"`
 }
 
-func NewFetcher(baseURL string) *Fetcher {
+func NewFetcher(baseURL string, logger *slog.Logger) *Fetcher {
 	return &Fetcher{
 		BaseURL: baseURL,
+		logger:  logger,
 	}
 }
 

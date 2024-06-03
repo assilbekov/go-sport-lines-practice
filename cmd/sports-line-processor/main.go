@@ -16,13 +16,13 @@ func main() {
 
 	store := storage.NewStorage()
 
-	log := setupLogger(cfg.LogLevel)
-	log.Info("starting sports line processor")
+	logger := setupLogger(cfg.LogLevel)
+	logger.Info("starting sports line processor")
 
 	quitCh := make(chan struct{})
-	go worker.StartWorker("SOCCER", cfg.SportsSyncIntervals.Soccer, store, quitCh)
-	go worker.StartWorker("FOOTBALL", cfg.SportsSyncIntervals.Football, store, quitCh)
-	go worker.StartWorker("BASEBALL", cfg.SportsSyncIntervals.Baseball, store, quitCh)
+	go worker.StartWorker("SOCCER", cfg.SportsSyncIntervals.Soccer, store, quitCh, logger)
+	go worker.StartWorker("FOOTBALL", cfg.SportsSyncIntervals.Football, store, quitCh, logger)
+	go worker.StartWorker("BASEBALL", cfg.SportsSyncIntervals.Baseball, store, quitCh, logger)
 
 	select {
 	// wait forever
