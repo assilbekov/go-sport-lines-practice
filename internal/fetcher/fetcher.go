@@ -32,7 +32,7 @@ func NewFetcher(baseURL string, logger *slog.Logger) *Fetcher {
 	}
 }
 
-func (f *Fetcher) fetchAndParseSportLines(sport string) (*LinesResponse, error) {
+func (f *Fetcher) fetchSportLines(sport string) (*LinesResponse, error) {
 	resp, err := http.Get(f.BaseURL + sport)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch sport line: %w", err)
@@ -83,13 +83,15 @@ func (f *Fetcher) convertLinesResponseToLine(response *LinesResponse) (*storage.
 }
 
 func (f *Fetcher) FetchSportLines(sport string) (*storage.Line, error) {
-	resp, err := f.fetchAndParseSportLines(sport)
+	resp, err := f.fetchSportLines(sport)
 	if err != nil {
+		f.logger.Error("failed to fetch and parse sport lines", "err", err)
 		return nil, fmt.Errorf("failed to fetch and parse sport lines: %w", err)
 	}
 
 	line, err := f.convertLinesResponseToLine(resp)
 	if err != nil {
+		f.logger.Error("failed to convert lines response to line", "err", err)
 		return nil, fmt.Errorf("failed to convert lines response to line: %w", err)
 	}
 

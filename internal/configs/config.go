@@ -17,6 +17,7 @@ type Config struct {
 	HTTPServerAddr string
 	GRPCServerAddr string
 	LogLevel       string
+	BaseURL        string
 	SportsSyncIntervals
 }
 
@@ -37,8 +38,9 @@ func LoadConfig() *Config {
 	// 2. Parse environment variables
 	return &Config{
 		HTTPServerAddr: getEnv("HTTP_SERVER_ADDR", ":8080"),
-		GRPCServerAddr: getEnvOrFatal("GRPC_SERVER_ADDR"),
+		GRPCServerAddr: getEnv("GRPC_SERVER_ADDR", ":60061"),
 		LogLevel:       getEnv("LOG_LEVEL", "info"),
+		BaseURL:        getEnv("BASE_URL", "http://localhost:8080/lines/"),
 		SportsSyncIntervals: SportsSyncIntervals{
 			Soccer:   parseDuration(getEnv("SOCCER_SYNC_INTERVAL", "3s")),
 			Football: parseDuration(getEnv("FOOTBALL_SYNC_INTERVAL", "4s")),
@@ -59,14 +61,6 @@ func getEnv(key, defaultValue string) string {
 	v := os.Getenv(key)
 	if v == "" {
 		return defaultValue
-	}
-	return v
-}
-
-func getEnvOrFatal(key string) string {
-	v := os.Getenv(key)
-	if v == "" {
-		log.Fatalf("missing required environment variable: %s", key)
 	}
 	return v
 }
