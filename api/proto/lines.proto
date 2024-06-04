@@ -14,5 +14,5 @@ message SportLinesRequest {
 }
 
 message SportLinesResponse {
-  map<string, float> lines = 1;
+  map<string, double> lines = 1;
 }

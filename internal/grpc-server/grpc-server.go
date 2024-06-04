@@ -52,9 +52,29 @@ func (s *Server) SubscribeOnSportsLines(stream linespb.LinesService_SubscribeOnS
 			for {
 				select {
 				case <-ticker.C:
-					_, err := s.store.GetLines()
+					lines, err := s.store.GetLines()
 					if err != nil {
 						s.logger.Error("failed to get lines", "error", err)
+						return
+					}
+
+					resp := &linespb.SportLinesResponse{
+						Lines: make(map[string]float64),
+					}
+
+					for _, sport := range in.Sports {
+						switch sport {
+						case "soccer":
+							resp.Lines["Soccer"] = lines.Soccer
+						case "football":
+							resp.Lines["Football"] = lines.Football
+						case "baseball":
+							resp.Lines["Baseball"] = lines.Baseball
+						}
+					}
+
+					if err := stream.Send(resp); err != nil {
+						s.logger.Error("failed to send", "error", err)
 						return
 					}
 				}
