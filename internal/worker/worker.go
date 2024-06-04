@@ -43,6 +43,8 @@ func (w *Worker) Start(ctx context.Context, sport string, interval time.Duration
 
 				w.storage.UpdateLines(*line)
 			}()
+		case <-ctx.Done():
+			w.logger.Info("stopping worker", "sport", sport)
 		}
 	}
 }

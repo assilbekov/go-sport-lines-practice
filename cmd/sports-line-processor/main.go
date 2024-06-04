@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-sport-lines-practice/internal/configs"
 	"go-sport-lines-practice/internal/fetcher"
+	httpserver "go-sport-lines-practice/internal/http-server"
 	"go-sport-lines-practice/internal/lib/slogpretty"
 	"go-sport-lines-practice/internal/storage"
 	"go-sport-lines-practice/internal/worker"
@@ -28,6 +29,10 @@ func main() {
 	go w.Start(ctx, "SOCCER", cfg.SportsSyncIntervals.Soccer)
 	go w.Start(ctx, "FOOTBALL", cfg.SportsSyncIntervals.Football)
 	go w.Start(ctx, "BASEBALL", cfg.SportsSyncIntervals.Baseball)
+
+	httpServer := httpserver.NewServer(cfg.HTTPServerAddr, store)
+
+	go httpServer.MustStart()
 
 	// graceful shutdown
 	stop := make(chan os.Signal, 1)
