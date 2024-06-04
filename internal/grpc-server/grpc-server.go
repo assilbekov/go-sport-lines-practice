@@ -21,6 +21,8 @@ type Server struct {
 	mu     sync.Mutex
 
 	subs []*Subscription
+
+	testSubs []*linespb.SportLinesRequest
 }
 
 type Subscription struct {
