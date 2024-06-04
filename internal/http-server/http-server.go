@@ -27,17 +27,7 @@ func (s *Server) MustStart() {
 func (s *Server) readyHandler(w http.ResponseWriter, _ *http.Request) {
 	if s.store.IsSynced() {
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte("ready"))
-
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
 	} else {
 		w.WriteHeader(http.StatusServiceUnavailable)
-		_, err := w.Write([]byte("not ready"))
-
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
 	}
 }
