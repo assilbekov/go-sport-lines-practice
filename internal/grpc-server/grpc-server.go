@@ -3,7 +3,9 @@ package grpcserver
 import (
 	"go-sport-lines-practice/api/proto/pkg/lines"
 	"go-sport-lines-practice/internal/storage"
+	"google.golang.org/grpc"
 	"log/slog"
+	"net"
 	"sync"
 )
 
@@ -18,8 +20,26 @@ type Server struct {
 	mu     sync.Mutex
 }
 
-func NewServer(store *storage.Storage) *Server {
+func NewServer(store *storage.Storage, logger *slog.Logger) *Server {
 	return &Server{
-		store: store,
+		store:  store,
+		logger: logger,
+	}
+}
+
+func (s *Server) MustStart(addr string) {
+	lis, err := net.Listen("tcp", addr)
+	if err != nil {
+		s.logger.Error("failed to listen", "error", err)
+		panic(err)
+	}
+
+	s.logger.Info("grpc server started", "addr", addr)
+	grpcServer := grpc.NewServer()
+	lines.RegisterLinesServiceServer(grpcServer, s)
+
+	if err := grpcServer.Serve(lis); err != nil {
+		s.logger.Error("failed to serve", "error", err)
+		panic(err)
 	}
 }
