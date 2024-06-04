@@ -37,13 +37,13 @@ func (s *Storage) UpdateLines(newLines Line) {
 	s.synced = true
 }
 
-func (s *Storage) GetLines() Line {
+func (s *Storage) GetLines() (Line, error) {
 	// Is this going to block the execution thread?
 	// Will I be able to read the lines while they are being updated?
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	return s.lines
+	return s.lines, nil
 }
 
 func (s *Storage) IsSynced() bool {
