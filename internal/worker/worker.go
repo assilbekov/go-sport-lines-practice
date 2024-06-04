@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"fmt"
 	"go-sport-lines-practice/internal/fetcher"
 	"go-sport-lines-practice/internal/storage"
@@ -8,14 +9,25 @@ import (
 	"time"
 )
 
-func StartWorker(
-	sport string,
-	interval time.Duration,
+type Worker struct {
+	fetcher *fetcher.Fetcher
+	storage *storage.Storage
+	logger  *slog.Logger
+}
+
+func NewWorker(
+	fetcher *fetcher.Fetcher,
 	storage *storage.Storage,
-	quitCh chan struct{},
 	logger *slog.Logger,
-) {
-	f := fetcher.NewFetcher("http://localhost:8080/lines/", logger)
+) *Worker {
+	return &Worker{
+		fetcher: fetcher,
+		storage: storage,
+		logger:  logger,
+	}
+}
+
+func (w *Worker) Start(ctx context.Context, sport string, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -23,16 +35,14 @@ func StartWorker(
 		select {
 		case <-ticker.C:
 			go func() {
-				line, err := f.FetchSportLines(sport)
+				line, err := w.fetcher.FetchSportLines(sport)
 				if err != nil {
-					logger.Error("failed to fetch sport line", "err", err)
+					w.logger.Error("failed to fetch sport line", "err", err)
 					fmt.Printf("failed to fetch sport line: %v\n", err)
 				}
 
-				storage.UpdateLines(*line)
+				w.storage.UpdateLines(*line)
 			}()
-		case <-quitCh:
-			return
 		}
 	}
 }

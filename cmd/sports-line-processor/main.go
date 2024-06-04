@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"go-sport-lines-practice/internal/configs"
+	"go-sport-lines-practice/internal/fetcher"
 	"go-sport-lines-practice/internal/lib/slogpretty"
 	"go-sport-lines-practice/internal/storage"
 	"go-sport-lines-practice/internal/worker"
@@ -19,10 +21,13 @@ func main() {
 	logger := setupLogger(cfg.LogLevel)
 	logger.Info("starting sports line processor")
 
-	quitCh := make(chan struct{})
-	go worker.StartWorker("SOCCER", cfg.SportsSyncIntervals.Soccer, store, quitCh, logger)
-	go worker.StartWorker("FOOTBALL", cfg.SportsSyncIntervals.Football, store, quitCh, logger)
-	go worker.StartWorker("BASEBALL", cfg.SportsSyncIntervals.Baseball, store, quitCh, logger)
+	ctx := context.Background()
+	f := fetcher.NewFetcher(cfg.BaseURL, logger)
+	w := worker.NewWorker(f, store, logger)
+
+	go w.Start(ctx, "SOCCER", cfg.SportsSyncIntervals.Soccer)
+	go w.Start(ctx, "FOOTBALL", cfg.SportsSyncIntervals.Football)
+	go w.Start(ctx, "BASEBALL", cfg.SportsSyncIntervals.Baseball)
 
 	select {
 	// wait forever
