@@ -29,9 +29,11 @@ func main() {
 	go w.Start(ctx, "FOOTBALL", cfg.SportsSyncIntervals.Football)
 	go w.Start(ctx, "BASEBALL", cfg.SportsSyncIntervals.Baseball)
 
-	select {
-	// wait forever
-	}
+	// graceful shutdown
+	stop := make(chan os.Signal, 1)
+	sign := <-stop
+
+	logger.Info("stopping sports line processor", "signal", sign)
 }
 
 func setupLogger(logLevel string) *slog.Logger {
